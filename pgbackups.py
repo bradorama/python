@@ -32,7 +32,7 @@ cur.execute("""SELECT datname from pg_database WHERE datistemplate = FALSE AND d
 rows = cur.fetchall()
 for row in rows:
     print 'Processsing Database: ' + row[0]
-    #call('pg_dump ' + row[0] + psql + gpg + backup_dir + row[0] + starttimestr + '.gpg --encrypt --recipient ' + gpgprofile, shell=True)
+    call('pg_dump ' + row[0] + psql + gpg + backup_dir + row[0] + starttimestr + '.gpg --encrypt --recipient ' + gpgprofile, shell=True)
 duration = datetime.datetime.now() - starttime
 syslog.syslog('PG Backup Completed. Duration: ' + str(duration) )
 call('find ' + backup_dir +' -mtime +5 -name *.gpg -exec rm {} \;', shell=True)
