@@ -9,10 +9,10 @@ from subprocess import call
 
 #Definitions
 
-host = 'postgresql01'
+host = '10.89.132.74'
 user = 'admin'
-gpgprofile = 'CertainDatabases'
-backup_dir = '/home/python/scripts/'
+gpgprofile = 'CertainSystem'
+backup_dir = '/certain_software/pbackup/postgresql/'
 psql = ' -U ' + user + ' -h ' + host
 gpg = '|gpg -o '
 starttime = datetime.datetime.now()
@@ -21,19 +21,18 @@ starttimestr = str(starttime.day) + str(starttime.month) + str(starttime.year) +
 #Execution
 
 try:
-    conn = psycopg2.connect("dbname='gold' user='admin' host='postgresql01' password='3e3p0pCs'")
+    conn = psycopg2.connect("dbname='postgres' user='admin' host='10.89.132.74' password='3e3p0pCs'")
     syslog.syslog('PG Backup Started')
 except:
     print "I am unable to connect to the database"
-    syslog.syslog.LOG_ERR('PG Backup Script DB Connection Error')
+    syslog.syslog('PG Backup Script DB Connection Error')
 
 cur = conn.cursor()
-cur.execute("""SELECT datname from pg_database WHERE datistemplate = FALSE""")
+cur.execute("""SELECT datname from pg_database WHERE datistemplate = FALSE AND datname <> 'webtest'""")
 rows = cur.fetchall()
 for row in rows:
     print 'Processsing Database: ' + row[0]
-    call('pg_dump ' + row[0] + psql + gpg + backup_dir + row[0] + starttimestr + '.gpg --encrypt --recipient ' + gpgprofile, shell=True)
+    #call('pg_dump ' + row[0] + psql + gpg + backup_dir + row[0] + starttimestr + '.gpg --encrypt --recipient ' + gpgprofile, shell=True)
 duration = datetime.datetime.now() - starttime
 syslog.syslog('PG Backup Completed. Duration: ' + str(duration) )
-
-
+call('find ' + backup_dir +' -mtime +5 -name *.gpg -exec rm {} \;', shell=True)
