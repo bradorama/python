@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/python
 import datetime
 import psycopg2
 import syslog
@@ -28,7 +28,7 @@ except:
     syslog.syslog('PG Backup Script DB Connection Error')
 
 cur = conn.cursor()
-cur.execute("""SELECT datname from pg_database WHERE datistemplate = FALSE AND datname <> 'webtest'""")
+cur.execute("""SELECT datname from pg_database WHERE datistemplate = FALSE AND datname NOT IN ('webtest', 'certainsystem')""")
 rows = cur.fetchall()
 for row in rows:
     print 'Processsing Database: ' + row[0]
@@ -36,3 +36,4 @@ for row in rows:
 duration = datetime.datetime.now() - starttime
 syslog.syslog('PG Backup Completed. Duration: ' + str(duration) )
 call('find ' + backup_dir + ' -mtime +5 -name *.gpg -exec rm {} \;', shell=True)
+
