@@ -1,4 +1,3 @@
-   GNU nano 2.0.9                                                       File: liquibased.py
 
 #!/usr/bin/python
 # Calls liquibase against a target database
@@ -10,6 +9,7 @@
 #
 import subprocess
 import sys
+import psycopg2
 from optparse import OptionParser
 
 #declarations
@@ -21,7 +21,7 @@ username='admin'
 password='3e3p0pCs'
 
 #handle arguments
-parser = OptionParser(usage="%prog [-o] [-t] [-d]", version="%prog .5")
+parser = OptionParser(usage="%prog [-o] [-t] [-d] (optional: not specified will process all db's)", version="%prog .5")
 parser.add_option("-o", dest="host",
                   help="host for liquibase")
 parser.add_option("-t",
@@ -29,7 +29,9 @@ parser.add_option("-t",
                   help="tag for liquibase")
 parser.add_option("-d",
                   dest="dbname",
-                  help="destination database")
+                  help="destination database (omit to process all databases)",
+                  default="alldatabases")
+
 
 (options, args) = parser.parse_args()
 
@@ -42,7 +44,15 @@ def liquibased(host, tag):
         subprocess.check_call(command, shell=True)
         subprocess.check_call(command + ' tag ' + tag, shell=True)
 
-#print options.host + ' ' + options.tag
-liquibased(options.host, options.tag)
+
+def getportals(host):
+    try:
+        connection_string = "dbname='certain_system' host=\'" +host+ "\' user='" + username + "\' password='" + password + "\'"
+#       conn = psycopg2.connect("dbname='certain_system' user='admin' host='Postgresql01' password='3e3p0pCs'")
+        conn = psycopg2.connect(connection_string)
+    except Exception, e:
+        print e[0]
+
+
 
 
