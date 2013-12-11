@@ -10,6 +10,7 @@ import subprocess
 import sys
 import psycopg2
 from optparse import OptionParser
+import syslog
 
 #declarations
 java_path = '/home/liquibase/certain/travis/lib/'
@@ -39,6 +40,7 @@ def liquibased(host, tag, database):
         target = url + host + url2 + database
         command =  'java -jar ' + java_path +'liquibase.jar ' + db_driver + ' ' + source_path + ' ' + target + ' --username ' + username + ' --password ' + password + ' update' 
         subprocess.check_call(command, shell=True)
+	syslog.syslog( host + '.' + database + ' updated Successfully.')
         subprocess.check_call(command + ' tag ' + tag, shell=True)
 
 
@@ -47,7 +49,7 @@ def getportals(host):
 	connection_string = "dbname='certain_system' host=\'" +host+ "\' user='" + username + "\' password='" + password + "\'"
         conn = psycopg2.connect(connection_string)
         cur = conn.cursor()
-	cur.execute("""SELECT prtl_code FROM portals""")
+	cur.execute("""SELECT prtl_code FROM portals WHERE prtl_is_active = TRUE""")
 	rows = cur.fetchall()
 	return rows
     except Exception, e:
@@ -55,13 +57,20 @@ def getportals(host):
         
 
 if options.dbname == 'alldatabases':
+    syslog.syslog('Starting a Global LB Deployment on: ' + options.host)
     rows = getportals(options.host)
     for row in rows:
-	print 'Processing: ' + row[0]
-	liquibased(options.host, options.tag, row[0])
+	    try:
+	        print 'Processing: ' + row[0]
+	        liquibased(options.host, options.tag, row[0])
+            except Exception, e:
+		syslog.syslog('***ERROR***  LB Deployment Failure on database: ' + row[0])
 else:
     print 'Processing: ' + options.dbname
+    syslog.syslog('Starting a direct LB Deployment on: ' + options.host + '.' + options.dbname)
     liquibased(options.host, options.tag, options.dbname)
+
+
 
 
 
